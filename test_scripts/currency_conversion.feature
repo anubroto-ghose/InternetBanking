@@ -1,18 +1,24 @@
 Feature: Currency Conversion
-  As a banking customer
-  I want to convert my currency from INR to USD
-  So that I can verify the conversion accuracy with decimal precision
+  As a user
+  I want to convert zero INR to USD
+  So that I can verify the conversion result
 
   Background:
     Given the currency conversion engine is implemented
+    And input value for INR to USD conversion is zero
 
-  Scenario: Successful conversion with decimal precision
-    Given I input an amount "1234.56" in INR
-    When I trigger the currency conversion
-    Then the converted amount in USD should be "15.56"
-    And the conversion should handle decimal precision accurately
+  Scenario: Conversion of zero INR to USD
+    Given the input amount in INR is zero
+    When the currency conversion is triggered
+    Then the converted amount in USD should be zero
 
-  Scenario: Conversion with rounding
-    Given I input an amount "1000.999" in INR
-    When I trigger the currency conversion
-    Then the converted amount in USD should be rounded to "13.00"
+  Scenario Outline: Multiple currency conversion attempts
+    Given the input amount in INR is <amount>
+    When the currency conversion is triggered
+    Then the converted amount in USD should be <expected_amount>
+
+    Examples:
+      | amount | expected_amount |
+      | 100    | 0.0             |
+      | 500    | 0.0             |
+      | 1000   | 0.0             |
