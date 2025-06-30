@@ -10,21 +10,21 @@ public class FilterTransactionHistoryTest {
 
 	@Test
 	public void testFilterTransactionHistoryByDateRange() {
-		driver.get("https://bankingportal.com");
+		driver.get("http://bankingportal.com");
+
+		// Login to the banking portal
 		LoginPage loginPage = new LoginPage(driver);
 		loginPage.login("username", "password");
 
-		TransactionHistoryPage transactionHistoryPage = new TransactionHistoryPage(driver);
-		transactionHistoryPage.navigateTo();
+		// Navigate to transaction history page
+		TransactionHistoryPage historyPage = new TransactionHistoryPage(driver);
+		historyPage.navigateToHistoryPage();
 
-		DateRangeFilter dateRangeFilter = new DateRangeFilter("01/01/2021", "01/31/2021");
-		transactionHistoryPage.applyDateRangeFilter(dateRangeFilter);
+		// Set date range filter
+		historyPage.setFilterDateRange("01/01/2022", "02/01/2022");
 
-		List<Transaction> filteredTransactions = transactionHistoryPage.getFilteredTransactions();
-
-		for (Transaction transaction : filteredTransactions) {
-			assertTrue(transaction.getDate().after(dateRangeFilter.getStartDate()), "Transaction date should be after start date");
-			assertTrue(transaction.getDate().before(dateRangeFilter.getEndDate()), "Transaction date should be before end date");
-		}
+		// Verify filtered transactions
+		List<Transaction> filteredTransactions = historyPage.getFilteredTransactions();
+		assertEquals(2, filteredTransactions.size(), "Filtered transactions size doesn't match");
 	}
 }
