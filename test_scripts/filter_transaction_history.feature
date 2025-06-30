@@ -4,5 +4,5 @@ Feature: Filter Transaction History
     Given User is logged into the banking portal
     And Transaction history data is available for the user
     When User navigates to the transaction history page
-    And Sets a specific date range in the filters
-    Then Verify transaction history data is filtered based on the selected date range
+    And User sets date range filter from '01/01/2022' to '02/01/2022'
+    Then Transaction history data is filtered based on the selected date range
