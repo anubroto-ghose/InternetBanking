@@ -1,3 +1,5 @@
+package com.example.tests;
+
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.junit.jupiter.api.Test;
@@ -24,6 +26,7 @@ import org.slf4j.LoggerFactory;
 @ExtendWith(SpringExtension.class)
 @AutoConfigureWebTestClient
 public class UserLoginTest {
+
     private WebDriver driver;
     private WebDriverWait wait;
     private static final Logger logger = LoggerFactory.getLogger(UserLoginTest.class);
@@ -53,10 +56,12 @@ public class UserLoginTest {
         String expectedDashboardTitle = "Account Dashboard";
 
         try {
+            // Navigate to login page
             driver.get("http://localhost:8080/login");
             logger.info("Navigated to login page");
 
-            WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")));
+            // Wait for and interact with login form
+            WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email"));
             emailField.clear();
             emailField.sendKeys(testEmail);
 
@@ -68,15 +73,18 @@ public class UserLoginTest {
             assertTrue(loginButton.isEnabled(), "Login button should be enabled");
             loginButton.click();
 
-            WebElement dashboardHeader = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("dashboard-header")));
+            // Verify successful login
+            WebElement dashboardHeader = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("dashboard-header"));
             assertTrue(dashboardHeader.isDisplayed(), "Dashboard should be visible after login");
 
             String pageTitle = driver.getTitle();
             assertTrue(pageTitle.contains(expectedDashboardTitle), "Page title should contain: " + expectedDashboardTitle + " but was: " + pageTitle);
 
+            // Verify URL redirection
             String currentUrl = driver.getCurrentUrl();
             assertTrue(currentUrl.contains("/dashboard"), "URL should redirect to dashboard, current URL: " + currentUrl);
 
+            // Additional verification - check for user-specific elements
             WebElement userProfile = driver.findElement(By.id("user-profile"));
             assertNotNull(userProfile, "User profile element should be present");
 
