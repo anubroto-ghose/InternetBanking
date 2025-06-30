@@ -1,10 +1,12 @@
-Feature: Currency conversion with decimal precision
+Feature: Currency Conversion
+  As a user
+  I want to convert currency from INR to USD
+  So that I can perform financial transactions
 
   Background:
-    Given the currency conversion engine is implemented
-    And input values for INR to USD conversion with decimal precision are provided
+    Given the currency conversion system is operational
 
-  Scenario: Convert INR amount to USD with decimal precision
-    Given an amount in INR with decimal precision
-    When the currency conversion is triggered
-    Then the precision of the converted amount in USD should be validated
+  Scenario: Conversion of zero INR to USD
+    Given the input INR amount is 0
+    When the conversion is triggered
+    Then the output USD amount should also be 0
