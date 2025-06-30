@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
+@AutoConfigureWebTestClient
 public class UserLoginTest {
     private WebDriver driver;
     private WebDriverWait wait;
@@ -36,14 +37,14 @@ public class UserLoginTest {
         logger.info("WebDriver initialized successfully");
     }
 
-    @AfterEach
+    @AfterEach  
     public void tearDown() {
         if (driver != null) {
             driver.quit();
             logger.info("WebDriver closed successfully");
         }
     }
-    
+
     @Test
     public void testCompleteUserLoginFlow() {
         // Test data setup
@@ -52,12 +53,10 @@ public class UserLoginTest {
         String expectedDashboardTitle = "Account Dashboard";
 
         try {
-            // Navigate to login page
             driver.get("http://localhost:8080/login");
             logger.info("Navigated to login page");
 
-            // Wait for and interact with login form
-            WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email"));
+            WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")));
             emailField.clear();
             emailField.sendKeys(testEmail);
 
@@ -69,20 +68,15 @@ public class UserLoginTest {
             assertTrue(loginButton.isEnabled(), "Login button should be enabled");
             loginButton.click();
 
-            // Verify successful login
-            WebElement dashboardHeader = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("dashboard-header"));
+            WebElement dashboardHeader = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("dashboard-header")));
             assertTrue(dashboardHeader.isDisplayed(), "Dashboard should be visible after login");
 
             String pageTitle = driver.getTitle();
-            assertTrue(pageTitle.contains(expectedDashboardTitle), 
-                       "Page title should contain: " + expectedDashboardTitle + " but was: " + pageTitle);
+            assertTrue(pageTitle.contains(expectedDashboardTitle), "Page title should contain: " + expectedDashboardTitle + " but was: " + pageTitle);
 
-            // Verify URL redirection
             String currentUrl = driver.getCurrentUrl();
-            assertTrue(currentUrl.contains("/dashboard"), 
-                       "URL should redirect to dashboard, current URL: " + currentUrl);
+            assertTrue(currentUrl.contains("/dashboard"), "URL should redirect to dashboard, current URL: " + currentUrl);
 
-            // Additional verification - check for user-specific elements
             WebElement userProfile = driver.findElement(By.id("user-profile"));
             assertNotNull(userProfile, "User profile element should be present");
 
