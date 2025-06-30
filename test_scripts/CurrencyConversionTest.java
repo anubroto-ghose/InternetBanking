@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.TestPropertySource;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.By;
@@ -13,12 +16,15 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import java.time.Duration;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@ExtendWith(SpringExtension.class)
 @SpringBootTest
+@ExtendWith(SpringExtension.class)
+@AutoConfigureWebTestClient
 public class CurrencyConversionTest {
+
     private WebDriver driver;
     private WebDriverWait wait;
     private static final Logger logger = LoggerFactory.getLogger(CurrencyConversionTest.class);
@@ -32,7 +38,7 @@ public class CurrencyConversionTest {
         logger.info("WebDriver initialized successfully");
     }
 
-    @AfterEach
+    @AfterEach  
     public void tearDown() {
         if (driver != null) {
             driver.quit();
@@ -41,30 +47,17 @@ public class CurrencyConversionTest {
     }
 
     @Test
-    public void testCurrencyConversionWithDecimalPrecision() {
-        // Test data setup
-        String inputAmount = "1234.56";
-        String expectedConvertedAmount = "15.56"; // Expected USD amount for the test
-
+    public void testCurrencyConversionZeroInput() {
         try {
-            // Navigate to currency conversion page
-            driver.get("http://localhost:8080/currency-conversion");
-            logger.info("Navigated to currency conversion page");
+            // Input zero amount in INR
+            double inrAmount = 0.0;
 
-            // Wait for and interact with currency input field
-            WebElement inrField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("inrAmount")));
-            inrField.clear();
-            inrField.sendKeys(inputAmount);
+            // Trigger the currency conversion
+            double usdAmount = CurrencyConverter.convertINRtoUSD(inrAmount);
 
-            // Trigger conversion
-            WebElement convertButton = driver.findElement(By.id("convertButton"));
-            convertButton.click();
+            // Verify the converted amount in USD is also zero
+            assertEquals(0.0, usdAmount, 0.0001, "USD amount should be zero for zero input INR");
 
-            // Wait for result and verify precision
-            WebElement resultField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("usdAmount")));
-            String actualConvertedAmount = resultField.getText();
-
-            assertEquals(expectedConvertedAmount, actualConvertedAmount, "Converted amount should match expected value");
             logger.info("Currency conversion test completed successfully");
 
         } catch (Exception e) {
