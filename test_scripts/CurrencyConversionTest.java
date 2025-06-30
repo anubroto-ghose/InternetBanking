@@ -1,35 +1,43 @@
-package com.test;
+package com.example.tests;
 
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.mockito.MockBean;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
+@AutoConfigureMockMvc
 @ExtendWith(SpringExtension.class)
 public class CurrencyConversionTest {
 
     @Autowired
-    private CurrencyConverterService currencyConverterService;
-    
+    private MockMvc mockMvc;
+
     @Test
     public void testCurrencyConversionWithDecimalPrecision() {
-        // Input data
-        double amountINR = 100.123;
-        double expectedAmountUSD = 1.35;
-        
-        // Mock the currency conversion service
-        when(currencyConverterService.convertINRtoUSD(amountINR)).thenReturn(expectedAmountUSD);
-        
-        // Perform currency conversion
-        double actualAmountUSD = currencyConverterService.convertINRtoUSD(amountINR);
-        
-        // Assertions
-        assertEquals(expectedAmountUSD, actualAmountUSD, 0.01, "Conversion result matches expected amount with precision");
+        // Mock API calls
+        mockCurrencyConversionService();
+
+        // Input amount in INR with decimal precision
+        double inrAmount = 1234.5678;
+
+        // Trigger currency conversion
+        mockMvc.perform(post("/convertCurrency").param("fromCurrency", "INR").param("toCurrency", "USD").param("amount", String.valueOf(inrAmount))).andExpect(status().isOk());
+
+        // Verify precision of converted amount in USD
+        double convertedUsdAmount = performCurrencyConversion(inrAmount, "INR", "USD");
+        assertEquals(1234.57, convertedUsdAmount, 0.001);
+    }
+
+    private void mockCurrencyConversionService() {
+        // Mock service implementation
+    }
+
+    private double performCurrencyConversion(double amount, String fromCurrency, String toCurrency) {
+        // Actual currency conversion logic
+        return amount * 0.013; // Simplified for demonstration
     }
 }
