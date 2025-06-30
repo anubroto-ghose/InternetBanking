@@ -22,9 +22,7 @@ import org.slf4j.LoggerFactory;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-@AutoConfigureWebTestClient
 public class UserLoginTest {
-
     private WebDriver driver;
     private WebDriverWait wait;
     private static final Logger logger = LoggerFactory.getLogger(UserLoginTest.class);
@@ -38,14 +36,14 @@ public class UserLoginTest {
         logger.info("WebDriver initialized successfully");
     }
 
-    @AfterEach  
+    @AfterEach
     public void tearDown() {
         if (driver != null) {
             driver.quit();
             logger.info("WebDriver closed successfully");
         }
     }
-
+    
     @Test
     public void testCompleteUserLoginFlow() {
         // Test data setup
@@ -59,7 +57,7 @@ public class UserLoginTest {
             logger.info("Navigated to login page");
 
             // Wait for and interact with login form
-            WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")));
+            WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email"));
             emailField.clear();
             emailField.sendKeys(testEmail);
 
@@ -72,7 +70,7 @@ public class UserLoginTest {
             loginButton.click();
 
             // Verify successful login
-            WebElement dashboardHeader = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("dashboard-header")));
+            WebElement dashboardHeader = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("dashboard-header"));
             assertTrue(dashboardHeader.isDisplayed(), "Dashboard should be visible after login");
 
             String pageTitle = driver.getTitle();
