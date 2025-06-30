@@ -1,6 +1,10 @@
-Feature: Currency Conversion
+Feature: Currency conversion with decimal precision
 
-  Scenario: Verify currency conversion accuracy with decimal precision
-    Given User has an amount in INR with decimal precision
-    When User triggers the currency conversion
-    Then The converted amount in USD should match the input precision
+  Background:
+    Given the currency conversion engine is implemented
+    And input values for INR to USD conversion with decimal precision are provided
+
+  Scenario: Convert INR amount to USD with decimal precision
+    Given an amount in INR with decimal precision
+    When the currency conversion is triggered
+    Then the precision of the converted amount in USD should be validated
