@@ -22,8 +22,9 @@ import org.slf4j.LoggerFactory;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-@AutoConfigureWebTestClient
+@TestPropertySource(properties = {"app.currency.base=INR", "app.currency.target=USD"})
 public class CurrencyConversionTest {
+
     private WebDriver driver;
     private WebDriverWait wait;
     private static final Logger logger = LoggerFactory.getLogger(CurrencyConversionTest.class);
@@ -46,13 +47,30 @@ public class CurrencyConversionTest {
     }
 
     @Test
-    public void testCurrencyConversionWithZeroINRInput() {
-        double inputINR = 0.0;
-        double expectedUSD = 0.0;
+    public void testCurrencyConversionWithDecimalPrecision() {
+        // Test data setup
+        double inrAmount = 1234.56789;
+        double expectedUsdAmount = 16.48116463;
 
         try {
-            // Perform currency conversion
-            // Your currency conversion logic goes here
+            // Navigate to currency conversion page
+            driver.get("http://localhost:8080/currency/converter");
+            logger.info("Navigated to currency conversion page");
+
+            // Input the amount in INR
+            WebElement inrField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("inrAmount")));
+            inrField.clear();
+            inrField.sendKeys(String.valueOf(inrAmount));
+
+            // Trigger the currency conversion
+            WebElement convertButton = driver.findElement(By.id("convertButton"));
+            assertTrue(convertButton.isEnabled(), "Convert button should be enabled");
+            convertButton.click();
+
+            // Verify the precision of the converted amount in USD
+            WebElement usdAmountElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("usdAmount"));
+            double actualUsdAmount = Double.parseDouble(usdAmountElement.getText());
+            assertEquals(expectedUsdAmount, actualUsdAmount, 0.00000001, "USD amount precision should match the expected value");
 
             logger.info("Currency conversion test completed successfully");
 
