@@ -1,12 +1,7 @@
 Feature: Currency Conversion
-  As a user
-  I want to convert currency from INR to USD
-  So that I can make informed financial decisions
 
-  Background:
-    Given the currency conversion service is operational
-
-  Scenario: Convert currency with decimal precision
-    Given an amount of 1234.56789 INR
-    When the user triggers the conversion
-    Then the converted amount should be approximately 16.48116463 USD
+  Scenario: Currency conversion from INR to USD with precision
+    Given User is logged into banking portal
+    When User enters amount 140.25 INR for conversion
+    And Triggers the currency conversion
+    Then Verify the precision of the converted amount in USD is 1.75
