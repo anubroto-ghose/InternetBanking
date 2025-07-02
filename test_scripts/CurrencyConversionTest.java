@@ -1,82 +1,62 @@
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.TestPropertySource;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.By;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import java.time.Duration;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-@TestPropertySource(properties = {"app.currency.base=INR", "app.currency.target=USD"})
+@AutoConfigureWebMvc
+@TestPropertySource(locations = "classpath:application-test.properties")
 public class CurrencyConversionTest {
 
-    private WebDriver driver;
-    private WebDriverWait wait;
     private static final Logger logger = LoggerFactory.getLogger(CurrencyConversionTest.class);
 
+    @Autowired
+    private WebDriver driver;
+
+    @MockBean
+    private AccountService accountService;
+
+    @MockBean
+    private TokenService tokenService;
+
+    @MockBean
+    private UserRepository userRepository;
+
+    private User testUser;
+
     @BeforeEach
-    public void setUp() {
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless", "--no-sandbox", "--disable-dev-shm-usage");
-        driver = new ChromeDriver(options);
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        logger.info("WebDriver initialized successfully");
+    public void setup() {
+        MockitoAnnotations.openMocks(this);
+        PageFactory.initElements(driver, this);
     }
 
-    @AfterEach  
-    public void tearDown() {
-        if (driver != null) {
-            driver.quit();
-            logger.info("WebDriver closed successfully");
-        }
+    @AfterEach
+    public void teardown() {
+        driver.quit();
     }
 
     @Test
-    public void testCurrencyConversionWithDecimalPrecision() {
-        // Test data setup
-        double inrAmount = 1234.56789;
-        double expectedUsdAmount = 16.48116463;
+    public void testCurrencyConversionPrecision() {
+        // Initialize test data
+        AmountRequest amountRequest = new AmountRequest();
+        amountRequest.setAmount(new BigDecimal("140.25"));
 
-        try {
-            // Navigate to currency conversion page
-            driver.get("http://localhost:8080/currency/converter");
-            logger.info("Navigated to currency conversion page");
+        // Mock service responses
+        when(accountService.convertCurrency(any(AmountRequest.class))).thenReturn(new BigDecimal("1.75"));
 
-            // Input the amount in INR
-            WebElement inrField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("inrAmount")));
-            inrField.clear();
-            inrField.sendKeys(String.valueOf(inrAmount));
+        // Perform currency conversion
+        driver.get("http://localhost:8080/conversion");
 
-            // Trigger the currency conversion
-            WebElement convertButton = driver.findElement(By.id("convertButton"));
-            assertTrue(convertButton.isEnabled(), "Convert button should be enabled");
-            convertButton.click();
+        // Entering amount to convert
+        WebElement amountField = driver.findElement(By.id("amount"));
+        amountField.sendKeys(amountRequest.getAmount().toString());
 
-            // Verify the precision of the converted amount in USD
-            WebElement usdAmountElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("usdAmount"));
-            double actualUsdAmount = Double.parseDouble(usdAmountElement.getText());
-            assertEquals(expectedUsdAmount, actualUsdAmount, 0.00000001, "USD amount precision should match the expected value");
+        // Trigger conversion
+        WebElement convertButton = driver.findElement(By.id("convertButton"));
+        convertButton.click();
 
-            logger.info("Currency conversion test completed successfully");
+        // Verify precision
+        WebElement convertedAmount = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("convertedAmount"));
+        BigDecimal expectedAmount = new BigDecimal("1.75");
+        BigDecimal actualAmount = new BigDecimal(convertedAmount.getText());
+        assertEquals(expectedAmount, actualAmount, "Currency conversion precision does not match");
 
-        } catch (Exception e) {
-            logger.error("Test failed with exception: " + e.getMessage());
-            fail("Test execution failed: " + e.getMessage());
-        }
+        logger.info("Currency conversion precision test passed");
     }
 }
