@@ -1,12 +1,12 @@
 Feature: Currency Conversion
   As a user
   I want to convert currency from INR to USD
-  So that I can perform financial transactions
+  So that I can make informed financial decisions
 
   Background:
-    Given the currency conversion system is operational
+    Given the currency conversion service is operational
 
-  Scenario: Conversion of zero INR to USD
-    Given the input INR amount is 0
-    When the conversion is triggered
-    Then the output USD amount should also be 0
+  Scenario: Convert currency with decimal precision
+    Given an amount of 1234.56789 INR
+    When the user triggers the conversion
+    Then the converted amount should be approximately 16.48116463 USD
