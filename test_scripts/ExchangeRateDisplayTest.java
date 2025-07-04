@@ -2,7 +2,7 @@
  * Test Case ID: TC_Exchange_003
  * Generated from Jira Ticket: BANK-2964
  * Epic: BANK-749
- * Generated on: 2025-07-04 15:50:47
+ * Generated on: 2025-07-04 17:43:58
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -10,12 +10,15 @@
 
 package com.webapp.bankingportal;
 
-import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -23,13 +26,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import com.webapp.bankingportal.services.AccountService;
+import com.webapp.bankingportal.services.TokenService;
+import com.webapp.bankingportal.repositories.UserRepository;
+import com.webapp.bankingportal.dto.AmountRequest;
+import com.webapp.bankingportal.dto.LoginRequest;
+import com.webapp.bankingportal.dto.PinRequest;
+import com.webapp.bankingportal.entities.User;
 
+@ExtendWith({SpringExtension.class, MockitoExtension.class})
 @SpringBootTest
 public class ExchangeRateDisplayTest {
-
-    private WebDriver driver;
 
     @MockBean
     private AccountService accountService;
@@ -40,38 +47,36 @@ public class ExchangeRateDisplayTest {
     @MockBean
     private UserRepository userRepository;
 
-    @InjectMocks
-    private User user;
+    private WebDriver driver;
 
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
+        System.setProperty("webdriver.chrome.driver", "/path/to/chromedriver");
         driver = new ChromeDriver();
-        driver.get("http://localhost:8080/bankingportal");
     }
 
     @Test
-    public void testDisplayExchangeRate() {
-        // Mocking the service response
-        when(accountService.getExchangeRate("INR", "USD"))
-            .thenReturn(new ExchangeRateResponse(74.85, "2023-10-01T12:00:00Z"));
+    public void testExchangeRateDisplay() {
+        // Mocking the exchange rate response
+        String expectedExchangeRate = "INR 73.56";
+        String expectedTimestamp = "Last updated: 2023-10-01 12:00:00";
+        when(accountService.getExchangeRate()).thenReturn(expectedExchangeRate);
+        when(accountService.getLastUpdatedTimestamp()).thenReturn(expectedTimestamp);
 
-        // Simulate user action to view exchange rate
-        driver.findElement(By.id("view-exchange-rate-button")).click();
+        // Navigate to the banking portal
+        driver.get("http://localhost:8080/bankingportal");
+
+        // Assuming the exchange rate is displayed in an element with id 'exchange-rate'
+        String displayedRate = driver.findElement(By.id("exchange-rate")).getText();
+        String displayedTimestamp = driver.findElement(By.id("timestamp")).getText();
 
         // Assertions
-        String exchangeRate = driver.findElement(By.id("exchange-rate-display")).getText();
-        String lastUpdated = driver.findElement(By.id("last-updated-timestamp")).getText();
-
-        assertTrue(exchangeRate.contains("74.85"), "Exchange rate should be displayed correctly");
-        assertTrue(lastUpdated.contains("2023-10-01"), "Last updated timestamp should be displayed correctly");
+        assertTrue(displayedRate.contains(expectedExchangeRate), "Exchange rate is not displayed correctly.");
+        assertTrue(displayedTimestamp.contains(expectedTimestamp), "Timestamp is not displayed correctly.");
     }
 
     @AfterEach
     public void tearDown() {
-        if (driver != null) {
-            driver.quit();
-        }
+        driver.quit();
     }
 }
