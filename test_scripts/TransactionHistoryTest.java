@@ -1,8 +1,8 @@
 /**
- * Test Case ID: TC_ViewTransaction_001
- * Generated from Jira Ticket: BANK-2952
+ * Test Case ID: TC_ViewTransaction_005
+ * Generated from Jira Ticket: BANK-2956
  * Epic: BANK-749
- * Generated on: 2025-07-04 15:39:30
+ * Generated on: 2025-07-04 15:52:58
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -10,7 +10,6 @@
 
 package com.webapp.bankingportal;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -21,68 +20,65 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.junit.jupiter.api.extension.ExtendWith;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static org.junit.jupiter.api.Assertions.*;
-import java.util.List;
 
-@ExtendWith(SpringExtension.class)
 @SpringBootTest
-@AutoConfigureMockMvc
 public class TransactionHistoryTest {
 
     private WebDriver driver;
 
-    @Mock
+    @MockBean
     private UserRepository userRepository;
-
-    @InjectMocks
+    
+    @MockBean
     private AccountService accountService;
+    
+    @MockBean
+    private TokenService tokenService;
+    
+    @InjectMocks
+    private User user;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
         driver = new ChromeDriver();
-        // Mock user data
-        User user = new User();
-        user.setId(1);
-        user.setUsername("testuser");
-        when(userRepository.findByUsername("testuser")).thenReturn(user);
+        user = new User("testUser", "password123");
+        when(userRepository.findByUsername("testUser")).thenReturn(user);
+        when(accountService.getTransactionHistory(user.getId())).thenReturn(generateLargeTransactionList());
     }
 
     @Test
     public void testViewTransactionHistory() {
-        // Log in to the application
         driver.get("http://localhost:8080/login");
-        WebElement usernameField = driver.findElement(By.name("username"));
-        WebElement passwordField = driver.findElement(By.name("password"));
-        usernameField.sendKeys("testuser");
-        passwordField.sendKeys("validPassword");
-        driver.findElement(By.id("loginButton")).click();
+        WebElement usernameField = driver.findElement(By.id("username"));
+        WebElement passwordField = driver.findElement(By.id("password"));
+        WebElement loginButton = driver.findElement(By.id("loginButton"));
 
-        // Navigate to transaction history
+        usernameField.sendKeys("testUser");
+        passwordField.sendKeys("password123");
+        loginButton.click();
+
         driver.findElement(By.id("transactionHistoryLink")).click();
 
-        // Assert that transaction history is displayed
-        List<WebElement> transactions = driver.findElements(By.className("transaction-entry"));
-        assertFalse(transactions.isEmpty(), "Transaction history should not be empty.");
+        WebElement transactionHistory = driver.findElement(By.id("transactionHistoryTable"));
 
-        // Validate details of each transaction
-        for (WebElement transaction : transactions) {
-            String inrAmount = transaction.findElement(By.className("inr-amount")).getText();
-            String usdAmount = transaction.findElement(By.className("usd-amount")).getText();
-            String exchangeRate = transaction.findElement(By.className("exchange-rate")).getText();
-            String timestamp = transaction.findElement(By.className("timestamp")).getText();
+        assertNotNull(transactionHistory);
+        assertTrue(transactionHistory.isDisplayed(), "Transaction history should be displayed.");
+        assertEquals(1000, transactionHistory.findElements(By.tagName("tr")).size(), "Transaction history should load efficiently with a large dataset.");
+    }
 
-            assertNotNull(inrAmount);
-            assertNotNull(usdAmount);
-            assertNotNull(exchangeRate);
-            assertNotNull(timestamp);
+    private List<Transaction> generateLargeTransactionList() {
+        List<Transaction> transactions = new ArrayList<>();
+        for (int i = 0; i < 1000; i++) {
+            transactions.add(new Transaction(i, "Transaction " + i, 100 + i, LocalDate.now().minusDays(i))); 
         }
+        return transactions;
     }
 
     @AfterEach
