@@ -1,8 +1,8 @@
 /**
- * Test Case ID: TC_Conversion_003
- * Generated from Jira Ticket: BANK-3072
+ * Test Case ID: TC_Conversion_002
+ * Generated from Jira Ticket: BANK-3071
  * Epic: BANK-749
- * Generated on: 2025-07-04 18:25:07
+ * Generated on: 2025-07-04 18:25:23
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -10,6 +10,7 @@
 
 package com.webapp.bankingportal;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -23,8 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 public class CurrencyConversionTest {
@@ -48,24 +49,34 @@ public class CurrencyConversionTest {
         driver.get("http://localhost:8080/currency-conversion");
     }
 
-    @Test
-    public void testZeroAmountConversion() {
-        // Input '0' into the conversion field.
-        WebElement conversionField = driver.findElement(By.id("conversionField"));
-        conversionField.sendKeys("0");
+    @AfterEach
+    public void tearDown() {
+        if (driver != null) {
+            driver.quit();
+        }
+    }
 
-        // Click the 'Convert' button.
+    @Test
+    public void testInvalidINRAmountConversion() {
+        // Input invalid INR amount
+        WebElement amountInput = driver.findElement(By.id("amount"));
+        amountInput.sendKeys("-500"); // Test with negative amount
+
+        // Click the Convert button
         WebElement convertButton = driver.findElement(By.id("convertButton"));
         convertButton.click();
 
-        // Expected Results: USD value should be '0'.
-        WebElement resultField = driver.findElement(By.id("resultField"));
-        String result = resultField.getText();
-        assertEquals("0", result);
-    }
+        // Verify error message
+        WebElement errorMessage = driver.findElement(By.id("errorMessage"));
+        assertTrue(errorMessage.isDisplayed(), "Error message should be displayed");
+        assertEquals("Invalid amount. Please enter a positive number.", errorMessage.getText());
 
-    @AfterEach
-    public void tearDown() {
-        driver.quit();
+        // Test with non-numeric input
+        amountInput.clear();
+        amountInput.sendKeys("abc");
+        convertButton.click();
+
+        assertTrue(errorMessage.isDisplayed(), "Error message should be displayed");
+        assertEquals("Invalid amount. Please enter a positive number.", errorMessage.getText());
     }
 }
