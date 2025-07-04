@@ -1,8 +1,8 @@
 /**
- * Test Case ID: TC_RetrieveHistory_002
- * Generated from Jira Ticket: BANK-3101
+ * Test Case ID: TC_RetrieveHistory_001
+ * Generated from Jira Ticket: BANK-3100
  * Epic: BANK-3083
- * Generated on: 2025-07-04 14:10:12
+ * Generated on: 2025-07-04 14:10:37
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -16,21 +16,16 @@ import org.openqa.selenium.chrome.ChromeDriver;
 
 public class ForexTransactionHistoryTest {
 
-    private static WebDriver driver;
+    private WebDriver driver;
 
     @Test
-    public void testRetrieveHistoryWithoutRecords() {
-        // Setup WebDriver
-        System.setProperty("webdriver.chrome.driver", "path/to/chromedriver.exe");
+    public void testForexTransactionHistory() {
+        System.setProperty("webdriver.chrome.driver", "path_to_chrome_driver");
         driver = new ChromeDriver();
+        driver.get("http://localhost:8080/forexTransactionHistory");
 
-        // Test Steps
-        // Add Selenium test steps here
+        // Add test steps and assertions here
 
-        // Assertions
-        // Add assertions here
-
-        // Clean up
-        driver.quit();
+        driver.close();
     }
 }
