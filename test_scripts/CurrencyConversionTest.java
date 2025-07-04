@@ -1,8 +1,8 @@
 /**
- * Test Case ID: TC_Conversion_004
- * Generated from Jira Ticket: BANK-3112
+ * Test Case ID: TC_Conversion_003
+ * Generated from Jira Ticket: BANK-3111
  * Epic: BANK-3083
- * Generated on: 2025-07-04 14:04:34
+ * Generated on: 2025-07-04 14:05:05
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -11,31 +11,26 @@
 package com.webapp.bankingportal;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-@SpringBootTest
 public class CurrencyConversionTest {
-    private WebDriver driver = new ChromeDriver();
+
+    private WebDriver driver;
 
     @Test
-    public void testInvalidAmountErrorMessage() {
-        // Write test logic here
-        // Mock services with proper responses
-        
-        // Open browser and perform necessary actions
-        
-        // Enter invalid amount
-        
-        // Click on Convert button
-        
-        // Check for error message
-        
-        // Assert database
-        
-        // Assert transaction history
+    public void testCurrencyConversion() {
+        // Initialize WebDriver
+        System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
+        driver = new ChromeDriver();
+
+        // Navigate to the currency conversion page
+        driver.get("http://example.com/currency-converter");
+
+        // Perform currency conversion process
+        // Add code to interact with elements and verify exchange rate
+
+        // Close the browser
+        driver.quit();
     }
 }
