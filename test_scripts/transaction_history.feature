@@ -1,15 +1,14 @@
-# Test Case ID: TC_ViewTransaction_005
-# Generated from Jira Ticket: BANK-2956
+# Test Case ID: TC_TransactionHistory_002
+# Generated from Jira Ticket: BANK-3066
 # Epic: BANK-749
-# Generated on: 2025-07-04 15:52:58
+# Generated on: 2025-07-04 18:26:11
 #
 # This is an auto-generated Cucumber feature file.
 # Modify with caution as changes may be overwritten.
 
-Feature: View Transaction History
+Feature: Transaction History
 
-  Scenario: User views transaction history with large dataset
-    Given the user is logged in as "testUser" with password "password123"
+  Scenario: Attempt to view transaction history with no conversion logs
+    Given the user "testUser" has not completed any conversion transactions
     When the user navigates to the transaction history section
-    Then the transaction history should be displayed without performance issues
-    And the transaction history should contain 1000 transactions
+    Then the application displays a message indicating that there are no conversion logs available
