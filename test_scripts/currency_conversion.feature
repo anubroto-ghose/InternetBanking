@@ -1,16 +1,15 @@
-# Test Case ID: TC_Conversion_004
-# Generated from Jira Ticket: BANK-3073
+# Test Case ID: TC_Conversion_003
+# Generated from Jira Ticket: BANK-3072
 # Epic: BANK-749
-# Generated on: 2025-07-04 18:24:53
+# Generated on: 2025-07-04 18:25:07
 #
 # This is an auto-generated Cucumber feature file.
 # Modify with caution as changes may be overwritten.
 
-Feature: Real-time currency conversion rate updates
+Feature: Currency Conversion
 
-  Scenario: User checks the conversion rate for INR
+  Scenario: Convert zero INR amount to USD
     Given the user is on the currency conversion page
-    When the user inputs a valid INR amount of "1000"
-    And waits for a few seconds
-    Then the conversion rate displayed should reflect the latest rate
-    And the conversion rate should be a valid number
+    When the user inputs '0' into the conversion field
+    And the user clicks the 'Convert' button
+    Then the displayed USD value should be '0'
