@@ -1,8 +1,8 @@
 /**
- * Test Case ID: TC_ExchangeRate_003
- * Generated from Jira Ticket: BANK-3076
+ * Test Case ID: TC_ExchangeRate_001
+ * Generated from Jira Ticket: BANK-3074
  * Epic: BANK-749
- * Generated on: 2025-07-04 18:24:06
+ * Generated on: 2025-07-04 18:24:36
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -20,67 +20,57 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.web.bind.annotation.RequestBody;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
 public class ExchangeRateTest {
 
     private WebDriver driver;
 
-    @Mock
+    @MockBean
     private AccountService accountService;
 
-    @Mock
+    @MockBean
     private TokenService tokenService;
 
-    @InjectMocks
+    @MockBean
     private UserRepository userRepository;
+
+    @InjectMocks
+    private User user;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
+        System.setProperty("webdriver.chrome.driver", "/path/to/chromedriver");
         driver = new ChromeDriver();
-        driver.get("http://localhost:8080/bankingportal");
-    }
-
-    @Test
-    public void testExchangeRateDisplaysTimestamp() {
-        // Mocking service responses
-        when(accountService.getCurrentExchangeRate()).thenReturn(new ResponseEntity<>(new ExchangeRateResponse(1.23, "2023-10-01T12:00:00Z"), HttpStatus.OK));
-
-        // Simulate user action to retrieve exchange rate
-        WebElement retrieveButton = driver.findElement(By.id("retrieveExchangeRate"));
-        retrieveButton.click();
-
-        // Observe the displayed exchange rate
-        WebElement exchangeRateElement = driver.findElement(By.id("exchangeRate"));
-        String displayedRate = exchangeRateElement.getText();
-
-        // Check for the presence of a timestamp
-        WebElement timestampElement = driver.findElement(By.id("lastUpdated"));
-        String displayedTimestamp = timestampElement.getText();
-
-        // Assertions
-        assertTrue(displayedRate.contains("1.23"), "Exchange rate not displayed correctly.");
-        assertTrue(displayedTimestamp.contains("2023-10-01T12:00:00Z"), "Timestamp not displayed correctly.");
+        driver.get("http://localhost:8080/currency-exchange");
     }
 
     @AfterEach
     public void tearDown() {
-        driver.quit();
+        if (driver != null) {
+            driver.quit();
+        }
+    }
+
+    @Test
+    public void testGetExchangeRate() {
+        // Mocking the response from the AccountService
+        when(accountService.getExchangeRate("INR", "USD")).thenReturn(75.50);
+
+        // Click on 'Get Exchange Rate' button
+        WebElement button = driver.findElement(By.id("getExchangeRateButton"));
+        button.click();
+
+        // Observe displayed exchange rate
+        WebElement exchangeRateElement = driver.findElement(By.id("exchangeRateDisplay"));
+        String displayedRate = exchangeRateElement.getText();
+
+        // Assert the expected result
+        assertEquals("75.50", displayedRate, "Exchange rate should be displayed correctly.");
     }
 }
