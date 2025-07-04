@@ -1,8 +1,8 @@
 /**
- * Test Case ID: TC_Forex_Conversion_003
- * Generated from Jira Ticket: BANK-3107
+ * Test Case ID: TC_RetrieveHistory_002
+ * Generated from Jira Ticket: BANK-3101
  * Epic: BANK-3083
- * Generated on: 2025-07-04 14:07:10
+ * Generated on: 2025-07-04 14:10:12
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -16,19 +16,21 @@ import org.openqa.selenium.chrome.ChromeDriver;
 
 public class ForexTransactionHistoryTest {
 
-    private WebDriver driver;
+    private static WebDriver driver;
 
     @Test
-    public void testViewForexTransactionHistory() {
-        System.setProperty("webdriver.chrome.driver", "/path/to/chromedriver");
+    public void testRetrieveHistoryWithoutRecords() {
+        // Setup WebDriver
+        System.setProperty("webdriver.chrome.driver", "path/to/chromedriver.exe");
         driver = new ChromeDriver();
-        driver.get("http://localhost:8080/login");
 
-        // Perform login as admin
-        // Navigate to transaction history section
+        // Test Steps
+        // Add Selenium test steps here
 
-        // Assertions for displayed forex transactions
+        // Assertions
+        // Add assertions here
 
+        // Clean up
         driver.quit();
     }
 }
