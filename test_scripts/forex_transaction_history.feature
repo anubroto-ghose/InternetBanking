@@ -1,14 +1,14 @@
-# Test Case ID: TC_RetrieveHistory_002
-# Generated from Jira Ticket: BANK-3101
+# Test Case ID: TC_RetrieveHistory_001
+# Generated from Jira Ticket: BANK-3100
 # Epic: BANK-3083
-# Generated on: 2025-07-04 14:10:12
+# Generated on: 2025-07-04 14:10:37
 #
 # This is an auto-generated Cucumber feature file.
 # Modify with caution as changes may be overwritten.
 
-Feature: Test Forex Transaction History
+Feature: Retrieve forex transaction history
 
-  Scenario: Retrieve forex transaction history without records
+Scenario: Retrieve forex transaction history with valid credentials
     Given User has valid authentication credentials
-    When Send a request to retrieve forex transaction history
-    Then System should handle the request for a user with no transaction history
+    When User sends a GET request to retrieve forex transaction history
+    Then The response should include date, amounts in INR and JPY, exchange rate, and transaction ID
