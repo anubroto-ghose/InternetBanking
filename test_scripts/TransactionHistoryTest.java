@@ -1,8 +1,8 @@
 /**
- * Test Case ID: TC_TransactionHistory_002
- * Generated from Jira Ticket: BANK-3066
+ * Test Case ID: TC_TransactionHistory_001
+ * Generated from Jira Ticket: BANK-3065
  * Epic: BANK-749
- * Generated on: 2025-07-04 18:26:11
+ * Generated on: 2025-07-04 18:26:29
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -18,64 +18,77 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+import java.util.List;
+import java.util.ArrayList;
 
+@ExtendWith(SpringExtension.class)
 @SpringBootTest
-@AutoConfigureMockMvc
+@ActiveProfiles("test")
 public class TransactionHistoryTest {
 
     private WebDriver driver;
 
-    @MockBean
+    @Mock
     private AccountService accountService;
 
-    @MockBean
-    private TokenService tokenService;
-
-    @MockBean
+    @Mock
     private UserRepository userRepository;
 
     @InjectMocks
-    private User user;
+    private TokenService tokenService;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
         driver = new ChromeDriver();
-        user = new User();
-        user.setUsername("testUser");
-        user.setPin("1234");
-        // Mocking the user repository to return the user with no conversion logs
-        when(userRepository.findByUsername("testUser")).thenReturn(user);
-    }
-
-    @Test
-    public void testViewTransactionHistoryWithNoLogs() {
-        driver.get("http://localhost:8080/transaction-history");
-        // Simulate login
-        driver.findElement(By.id("username")).sendKeys("testUser");
-        driver.findElement(By.id("pin")).sendKeys("1234");
-        driver.findElement(By.id("loginButton")).click();
-
-        // Navigate to transaction history
-        driver.findElement(By.id("transactionHistoryLink")).click();
-
-        // Verify the no transaction logs message
-        String noLogsMessage = driver.findElement(By.id("noTransactionLogsMessage")).getText();
-        assertEquals("No conversion logs available.", noLogsMessage);
+        // Mocking the account service response
+        User user = new User();
+        user.setId(1);
+        user.setUsername("testuser");
+        when(userRepository.findByUsername("testuser")).thenReturn(user);
+        when(accountService.getTransactionHistory(user.getId())).thenReturn(getMockTransactionHistory());
     }
 
     @AfterEach
     public void tearDown() {
-        driver.quit();
+        if (driver != null) {
+            driver.quit();
+        }
+    }
+
+    @Test
+    public void testViewTransactionHistory() {
+        driver.get("http://localhost:8080/transaction-history");
+
+        List<WebElement> logs = driver.findElements(By.className("conversion-log"));
+        assertFalse(logs.isEmpty(), "Transaction logs should not be empty");
+
+        for (WebElement log : logs) {
+            String inrAmount = log.findElement(By.className("inr-amount")).getText();
+            String usdAmount = log.findElement(By.className("usd-amount")).getText();
+            String exchangeRate = log.findElement(By.className("exchange-rate")).getText();
+            String timestamp = log.findElement(By.className("timestamp")).getText();
+
+            assertNotNull(inrAmount, "INR amount should not be null");
+            assertNotNull(usdAmount, "USD amount should not be null");
+            assertNotNull(exchangeRate, "Exchange rate should not be null");
+            assertNotNull(timestamp, "Timestamp should not be null");
+        }
+    }
+
+    private List<Transaction> getMockTransactionHistory() {
+        List<Transaction> transactions = new ArrayList<>();
+        transactions.add(new Transaction(1000, 12.5, 80.0, "2023-01-01T10:00:00"));
+        transactions.add(new Transaction(2000, 25.0, 80.0, "2023-01-02T11:00:00"));
+        return transactions;
     }
 }
