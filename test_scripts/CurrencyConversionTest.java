@@ -1,8 +1,8 @@
 /**
- * Test Case ID: TC_Conversion_004
- * Generated from Jira Ticket: BANK-2960
+ * Test Case ID: TC_Conversion_002
+ * Generated from Jira Ticket: BANK-2958
  * Epic: BANK-749
- * Generated on: 2025-07-04 15:37:13
+ * Generated on: 2025-07-04 15:37:43
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -10,6 +10,7 @@
 
 package com.webapp.bankingportal;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -22,12 +23,11 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@ActiveProfiles("test")
 @AutoConfigureMockMvc
 public class CurrencyConversionTest {
 
@@ -41,7 +41,7 @@ public class CurrencyConversionTest {
     private UserRepository userRepository;
 
     @InjectMocks
-    private CurrencyConversionController currencyConversionController;
+    private User user;
 
     private WebDriver driver;
 
@@ -53,31 +53,26 @@ public class CurrencyConversionTest {
         driver.get("http://localhost:8080/currency-conversion");
     }
 
-    @Test
-    public void testEdgeCaseINRAmount() {
-        // Mocking the services
-        when(accountService.convertCurrency(1000000000.0, "INR", "USD")).thenReturn(12000000.0);
+    @AfterEach
+    public void tearDown() {
+        driver.quit();
+    }
 
-        // Input an edge case amount in INR
+    @Test
+    public void testInvalidAmountInput() {
+        // Step 1: Input an invalid amount in INR
         WebElement amountInput = driver.findElement(By.id("amountInput"));
-        amountInput.sendKeys("1000000000"); // Edge case amount
+        amountInput.sendKeys("invalid_amount");
 
         WebElement convertButton = driver.findElement(By.id("convertButton"));
         convertButton.click();
 
-        // Verify the conversion result
-        WebElement resultElement = driver.findElement(By.id("conversionResult"));
-        String resultText = resultElement.getText();
+        // Step 2: Ensure the system response to the invalid input
+        WebElement errorMessage = driver.findElement(By.id("errorMessage"));
+        assertNotNull(errorMessage);
+        assertEquals("Invalid amount entered. Please enter a valid amount in INR.", errorMessage.getText());
 
-        // Assert the expected result
-        assertEquals("Converted Amount: 12000000.0 USD", resultText);
-    }
-
-    // Clean up after tests
-    @AfterEach
-    public void tearDown() {
-        if (driver != null) {
-            driver.quit();
-        }
+        // Ensure no conversion occurs
+        verify(accountService, never()).convert(any());
     }
 }
