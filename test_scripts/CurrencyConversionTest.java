@@ -1,8 +1,8 @@
 /**
- * Test Case ID: TC_Conversion_002
- * Generated from Jira Ticket: BANK-3057
+ * Test Case ID: TC_Conversion_001
+ * Generated from Jira Ticket: BANK-3056
  * Epic: BANK-749
- * Generated on: 2025-07-04 18:27:53
+ * Generated on: 2025-07-04 18:28:06
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -19,54 +19,53 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.client.RestTemplate;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@WebMvcTest
-@RestController
+@SpringBootTest
+@AutoConfigureMockMvc
 public class CurrencyConversionTest {
 
     private WebDriver driver;
 
-    @MockBean
+    @Autowired
     private AccountService accountService;
 
-    @MockBean
+    @Autowired
     private TokenService tokenService;
 
-    @MockBean
+    @Autowired
     private UserRepository userRepository;
 
     @BeforeEach
     public void setUp() {
         System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
         driver = new ChromeDriver();
+        // Mocking the external service to simulate API downtime
+        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        when(restTemplate.getForObject(any(String.class), any(Class.class))).thenThrow(new RuntimeException("API Down"));
     }
 
     @Test
-    public void testCurrencyConversionApiDown() {
-        // Mocking the behavior of the external API
-        when(accountService.convertCurrency(any(AmountRequest.class))).thenReturn(new ResponseEntity<>("API is down", HttpStatus.SERVICE_UNAVAILABLE));
-
+    public void testCurrencyConversionFallback() {
         driver.get("http://localhost:8080/bankingportal");
 
-        // Simulating currency conversion
+        // Find and fill in the currency conversion form
         WebElement amountInput = driver.findElement(By.id("amountInput"));
         amountInput.sendKeys("100");
 
         WebElement convertButton = driver.findElement(By.id("convertButton"));
         convertButton.click();
 
-        // Check for error message
-        WebElement errorMessage = driver.findElement(By.id("errorMessage"));
-        assertEquals("API is down", errorMessage.getText());
+        // Check for the expected fallback behavior
+        WebElement result = driver.findElement(By.id("conversionResult"));
+        assertEquals("Last known exchange rate: 1.2", result.getText(), "The conversion should use the last known exchange rate");
     }
 
     @AfterEach
