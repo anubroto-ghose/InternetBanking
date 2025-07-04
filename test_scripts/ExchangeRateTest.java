@@ -1,8 +1,8 @@
 /**
- * Test Case ID: TC_Exchange_001
- * Generated from Jira Ticket: BANK-2962
+ * Test Case ID: TC_ExchangeRate_003
+ * Generated from Jira Ticket: BANK-3076
  * Epic: BANK-749
- * Generated on: 2025-07-04 15:51:19
+ * Generated on: 2025-07-04 18:24:06
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -13,42 +13,70 @@ package com.webapp.bankingportal;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import static org.junit.jupiter.api.Assertions.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.bind.annotation.RequestBody;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
 public class ExchangeRateTest {
+
     private WebDriver driver;
-    private WebDriverWait wait;
+
+    @Mock
+    private AccountService accountService;
+
+    @Mock
+    private TokenService tokenService;
+
+    @InjectMocks
+    private UserRepository userRepository;
 
     @BeforeEach
     public void setUp() {
+        MockitoAnnotations.openMocks(this);
         System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
         driver = new ChromeDriver();
-        wait = new WebDriverWait(driver, 10);
+        driver.get("http://localhost:8080/bankingportal");
     }
 
     @Test
-    public void testFetchCurrentINRToUSDRates() {
-        // Navigate to the banking portal
-        driver.get("http://localhost:8080");
+    public void testExchangeRateDisplaysTimestamp() {
+        // Mocking service responses
+        when(accountService.getCurrentExchangeRate()).thenReturn(new ResponseEntity<>(new ExchangeRateResponse(1.23, "2023-10-01T12:00:00Z"), HttpStatus.OK));
 
-        // Simulate user requesting exchange rate
-        WebElement exchangeRateButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("exchangeRateButton")));
-        exchangeRateButton.click();
+        // Simulate user action to retrieve exchange rate
+        WebElement retrieveButton = driver.findElement(By.id("retrieveExchangeRate"));
+        retrieveButton.click();
 
-        // Wait for the exchange rate to be displayed
-        WebElement exchangeRate = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("currentExchangeRate")));
-        WebElement timestamp = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("lastUpdated")));
+        // Observe the displayed exchange rate
+        WebElement exchangeRateElement = driver.findElement(By.id("exchangeRate"));
+        String displayedRate = exchangeRateElement.getText();
+
+        // Check for the presence of a timestamp
+        WebElement timestampElement = driver.findElement(By.id("lastUpdated"));
+        String displayedTimestamp = timestampElement.getText();
 
         // Assertions
-        assertNotNull(exchangeRate.getText(), "Exchange rate should not be null");
-        assertNotNull(timestamp.getText(), "Timestamp should not be null");
-        assertTrue(exchangeRate.getText().matches("^\d+\.\d{2} USD$"), "Exchange rate format is incorrect");
+        assertTrue(displayedRate.contains("1.23"), "Exchange rate not displayed correctly.");
+        assertTrue(displayedTimestamp.contains("2023-10-01T12:00:00Z"), "Timestamp not displayed correctly.");
     }
 
     @AfterEach
