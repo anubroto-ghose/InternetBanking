@@ -1,14 +1,14 @@
-# Test Case ID: TC_Conversion_002
-# Generated from Jira Ticket: BANK-3057
+# Test Case ID: TC_Conversion_001
+# Generated from Jira Ticket: BANK-3056
 # Epic: BANK-749
-# Generated on: 2025-07-04 18:27:53
+# Generated on: 2025-07-04 18:28:06
 #
 # This is an auto-generated Cucumber feature file.
 # Modify with caution as changes may be overwritten.
 
 Feature: Currency Conversion
 
-  Scenario: Error handling when API is down
+  Scenario: Fallback to last known exchange rate during API downtime
     Given the external API is unreachable
     When I attempt to convert currency
-    Then I should see an error message indicating that the API is down and fallback is not possible
+    Then the conversion function should return the last known good exchange rate without errors
