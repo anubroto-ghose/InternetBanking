@@ -1,8 +1,8 @@
 /**
- * Test Case ID: TC_Conversion_003
- * Generated from Jira Ticket: BANK-3111
+ * Test Case ID: TC_Conversion_002
+ * Generated from Jira Ticket: BANK-3110
  * Epic: BANK-3083
- * Generated on: 2025-07-04 14:05:05
+ * Generated on: 2025-07-04 14:05:45
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -19,18 +19,8 @@ public class CurrencyConversionTest {
     private WebDriver driver;
 
     @Test
-    public void testCurrencyConversion() {
-        // Initialize WebDriver
-        System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
-        driver = new ChromeDriver();
-
-        // Navigate to the currency conversion page
-        driver.get("http://example.com/currency-converter");
-
-        // Perform currency conversion process
-        // Add code to interact with elements and verify exchange rate
-
-        // Close the browser
-        driver.quit();
+    public void testCurrencyConversionWithInvalidAmount() {
+        // Test implementation here
     }
+
 }
