@@ -1,8 +1,8 @@
 /**
- * Test Case ID: TC_Conversion_005
- * Generated from Jira Ticket: BANK-3064
+ * Test Case ID: TC_Conversion_004
+ * Generated from Jira Ticket: BANK-3063
  * Epic: BANK-749
- * Generated on: 2025-07-04 18:26:48
+ * Generated on: 2025-07-04 18:27:04
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -23,15 +23,12 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.client.RestTemplate;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -39,43 +36,21 @@ public class CurrencyConversionTest {
 
     private WebDriver driver;
 
-    @MockBean
-    private AccountService accountService;
-
-    @MockBean
+    @Mock
     private TokenService tokenService;
 
-    @MockBean
-    private UserRepository userRepository;
+    @Mock
+    private AccountService accountService;
 
     @InjectMocks
-    private User user;
+    private UserRepository userRepository;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
         driver = new ChromeDriver();
-    }
-
-    @Test
-    public void testCurrencyConversionDuringApiDowntime() {
-        // Mocking the service to simulate API downtime
-        when(accountService.convertCurrency(any())).thenThrow(new RuntimeException("API is down"));
-
-        driver.get("http://localhost:8080/currency-conversion");
-
-        // Start the conversion process
-        WebElement convertButton = driver.findElement(By.id("convertButton"));
-        convertButton.click();
-
-        // Check for the message on the UI
-        WebElement messageElement = driver.findElement(By.id("message"));
-        String message = messageElement.getText();
-
-        // Assert the message and ensure UI remains responsive
-        assertTrue(message.contains("Using cached rates"), "User should be informed about cached rates");
-        assertEquals("200 OK", driver.getTitle(), "The UI should remain responsive");
+        driver.get("http://localhost:8080/bankingportal");
     }
 
     @AfterEach
@@ -83,5 +58,24 @@ public class CurrencyConversionTest {
         if (driver != null) {
             driver.quit();
         }
+    }
+
+    @Test
+    public void testCurrencyConversionWhenApiIsDown() {
+        // Mocking the external API calls to simulate downtime
+        when(accountService.getExchangeRate()).thenThrow(new RuntimeException("API is down"));
+
+        // Simulate user input for currency conversion
+        WebElement amountInput = driver.findElement(By.id("amount"));
+        amountInput.sendKeys("100");
+        WebElement convertButton = driver.findElement(By.id("convertButton"));
+        convertButton.click();
+
+        // Observe the system response
+        String notificationMessage = driver.findElement(By.id("notificationMessage")).getText();
+        assertEquals("API is unreachable, using cached exchange rate.", notificationMessage);
+
+        // Verify that the service was called
+        verify(accountService, times(1)).getExchangeRate();
     }
 }
