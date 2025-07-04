@@ -1,14 +1,17 @@
-Feature: Forex Exchange INR to USD Conversion
+Feature: Forex Exchange Conversion
 
-  Scenario: User converts INR to USD
-    Given the user is on the forex exchange page
-    When the user enters an amount of "1000" INR
+  Scenario: Convert INR to USD
+    Given the user is on the forex conversion page
+    When the user inputs "1000" INR
     And clicks on the convert button
-    Then the user should see the converted amount as "13.0 USD"
-    And the timestamp of the exchange rate used should be displayed
-    And the conversion should be logged successfully
+    Then the user should see the converted amount displayed as "Converted Amount: 13.39 USD"
 
-  Scenario: User views current exchange rate
-    Given the user is on the forex exchange page
+  Scenario: Display current exchange rate
+    Given the user is on the forex conversion page
     When the page loads
-    Then the user should see the current exchange rate from INR to USD
+    Then the user should see the current exchange rate displayed
+
+  Scenario: Log conversion history
+    Given the user has converted "1000" INR to USD
+    When the user checks the conversion history
+    Then the user should see the conversion logged with timestamp and rate used
