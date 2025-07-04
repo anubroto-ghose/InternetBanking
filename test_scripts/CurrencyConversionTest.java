@@ -1,8 +1,8 @@
 /**
- * Test Case ID: TC_Conversion_001
- * Generated from Jira Ticket: BANK-2957
+ * Test Case ID: TC_Conversion_004
+ * Generated from Jira Ticket: BANK-3073
  * Epic: BANK-749
- * Generated on: 2025-07-04 15:52:39
+ * Generated on: 2025-07-04 18:24:53
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -10,25 +10,28 @@
 
 package com.webapp.bankingportal;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
-
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.web.servlet.MockMvc;
+import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.concurrent.TimeUnit;
 
-@ExtendWith(MockitoExtension.class)
 @SpringBootTest
+@AutoConfigureMockMvc
 public class CurrencyConversionTest {
 
     private WebDriver driver;
@@ -43,35 +46,42 @@ public class CurrencyConversionTest {
     private UserRepository userRepository;
 
     @InjectMocks
-    private CurrencyConversionController currencyConversionController;
+    private User user;
+
+    @Autowired
+    private MockMvc mockMvc;
 
     @BeforeEach
     public void setUp() {
-        System.setProperty("webdriver.chrome.driver", "/path/to/chromedriver");
+        MockitoAnnotations.openMocks(this);
+        System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
         driver = new ChromeDriver();
+        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
         driver.get("http://localhost:8080/currency-conversion");
     }
 
     @Test
-    public void testCurrencyConversion() {
-        // Mocking the service response
-        when(accountService.convertCurrency(1000.00, "INR", "USD")).thenReturn(13.50);
-
-        // Input a valid amount in INR
-        WebElement amountInput = driver.findElement(By.id("amount-input"));
+    public void testRealTimeConversionRateUpdates() throws InterruptedException {
+        // Input a valid INR amount
+        WebElement amountInput = driver.findElement(By.id("amountInput"));
         amountInput.sendKeys("1000");
 
-        // Trigger conversion
-        WebElement convertButton = driver.findElement(By.id("convert-button"));
-        convertButton.click();
+        // Wait for a few seconds to see if the conversion rate updates
+        Thread.sleep(5000);
 
-        // Verify that the application displays the converted value in USD
-        WebElement convertedValue = driver.findElement(By.id("converted-value"));
-        assertEquals("13.50 USD", convertedValue.getText());
+        // Check conversion rate
+        WebElement conversionRate = driver.findElement(By.id("conversionRate"));
+        String rateText = conversionRate.getText();
+
+        // Assert that the conversion rate is displayed
+        assertTrue(rateText.contains("INR"));
+        assertTrue(rateText.matches("[0-9]+(\.[0-9]+)?"));  // Check if the rate is a valid number
     }
 
     @AfterEach
     public void tearDown() {
-        driver.quit();
+        if (driver != null) {
+            driver.quit();
+        }
     }
 }
