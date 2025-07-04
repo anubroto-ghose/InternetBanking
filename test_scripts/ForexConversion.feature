@@ -1,15 +1,19 @@
-# Test Case ID: TC_Forex_Conversion_001
-# Generated from Jira Ticket: BANK-3105
+# Test Case ID: TC_Forex_001_TC_Login_002
+# Generated from Jira Ticket: BANK-3093
 # Epic: BANK-3083
-# Generated on: 2025-07-04 14:08:07
+# Generated on: 2025-07-04 14:13:51
 #
 # This is an auto-generated Cucumber feature file.
 # Modify with caution as changes may be overwritten.
 
 Feature: Forex Conversion
 
-  Scenario: Successful forex conversion initiated by admin
-    Given Admin is logged in to the system
-    When Admin accesses the endpoint POST /admin/forex/convert
-    And Admin provides the required input for currency conversion
-    Then The system successfully converts the currency and displays a confirmation message
+  Background:
+    Given User is authenticated and authorized
+    And Valid user credentials are available
+
+  Scenario: Test forex conversion with invalid credentials
+    When User navigates to the forex conversion page
+    And Enters invalid credentials
+    And Initiates conversion request
+    Then System should display an error message
