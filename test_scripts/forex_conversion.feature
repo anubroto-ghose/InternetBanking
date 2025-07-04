@@ -1,14 +1,14 @@
-# Test Case ID: TC_Forex_001
-# Generated from Jira Ticket: BANK-3095
+# Test Case ID: TC_Forex_001_TC_Login_003
+# Generated from Jira Ticket: BANK-3094
 # Epic: BANK-3083
-# Generated on: 2025-07-04 14:12:55
+# Generated on: 2025-07-04 14:13:24
 #
 # This is an auto-generated Cucumber feature file.
 # Modify with caution as changes may be overwritten.
 
 Feature: Forex Conversion
-
-  Scenario: Successful forex conversion with valid authentication token
-    Given the user is authenticated and has a valid authentication token
-    When the user sends a valid request to the forex conversion endpoint
-    Then the system successfully converts the forex with the authenticated user
+  
+  Scenario: User accesses forex conversion without login
+    Given User is not authenticated
+    When User access the forex conversion endpoint
+    Then User should be redirected to the login page
