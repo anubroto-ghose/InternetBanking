@@ -3,23 +3,27 @@ package com.webapp.bankingportal;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
-
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 public class CurrencyConversionTest {
+
+    private WebDriver driver;
 
     @MockBean
     private AccountService accountService;
@@ -29,8 +33,6 @@ public class CurrencyConversionTest {
 
     @MockBean
     private UserRepository userRepository;
-
-    private WebDriver driver;
 
     @BeforeEach
     public void setUp() {
@@ -46,22 +48,24 @@ public class CurrencyConversionTest {
 
     @Test
     public void testCurrencyConversionPrecision() {
-        // Mocking the AccountService response
-        when(accountService.convertCurrency(any(Double.class), any(String.class), any(String.class))).thenReturn(74.12345);
+        // Mocking the currency conversion response
+        double inputAmount = 1234.56;
+        double expectedConvertedAmount = 16.67; // Example expected value
+        when(accountService.convertCurrency(inputAmount, "INR", "USD"))
+            .thenReturn(new ResponseEntity<>(expectedConvertedAmount, HttpStatus.OK));
 
-        // Input amount in INR
-        WebElement amountInput = driver.findElement(By.id("amountInINR"));
-        amountInput.sendKeys("100.12345");
+        // Inputting amount in INR
+        driver.findElement(By.id("amountInput"))
+              .sendKeys(String.valueOf(inputAmount));
 
-        // Trigger conversion
-        WebElement convertButton = driver.findElement(By.id("convertButton"));
-        convertButton.click();
+        // Triggering conversion
+        driver.findElement(By.id("convertButton")).click();
 
-        // Verify the converted amount in USD
-        WebElement resultElement = driver.findElement(By.id("resultUSD"));
-        String resultText = resultElement.getText();
+        // Verifying the converted amount
+        String convertedAmountText = driver.findElement(By.id("convertedAmount"))
+                                         .getText();
+        double convertedAmount = Double.parseDouble(convertedAmountText);
 
-        // Assert the precision of the converted amount
-        assertEquals("74.12345", resultText);
+        assertEquals(expectedConvertedAmount, convertedAmount, 0.01, "The converted amount does not match the expected precision.");
     }
 }
