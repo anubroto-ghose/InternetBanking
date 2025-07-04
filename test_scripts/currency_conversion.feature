@@ -1,15 +1,18 @@
-# Test Case ID: TC_Conversion_002
-# Generated from Jira Ticket: BANK-2958
+# Test Case ID: TC_Conversion_001
+# Generated from Jira Ticket: BANK-2957
 # Epic: BANK-749
-# Generated on: 2025-07-04 15:37:43
+# Generated on: 2025-07-04 15:37:59
 #
 # This is an auto-generated Cucumber feature file.
 # Modify with caution as changes may be overwritten.
 
 Feature: Currency Conversion
 
-  Scenario: Input invalid amount in INR and handle gracefully
+  Scenario: Convert INR to USD
     Given the user is on the currency conversion screen
-    When the user inputs an invalid amount in INR
-    Then the application should display a clear error message for invalid INR amounts
-    And the system should not proceed with the conversion if the input is invalid
+    When the user inputs a valid amount in INR
+      | amount |
+      | 100    |
+    Then the application displays the converted value in USD
+      | convertedAmount |
+      | 13.50          |
