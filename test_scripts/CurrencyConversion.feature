@@ -1,14 +1,19 @@
-Feature: Currency Conversion
-  As a bank customer
-  I want to perform accurate currency conversions
-  So that I can manage my financial transactions
+# Test Case ID: TC_Conversion_004
+# Generated from Jira Ticket: BANK-3112
+# Epic: BANK-3083
+# Generated on: 2025-07-04 14:04:34
+#
+# This is an auto-generated Cucumber feature file.
+# Modify with caution as changes may be overwritten.
 
-  Scenario: Verify currency conversion with decimal precision
-    Given the currency conversion engine is operational
-    And an amount in INR with decimal precision is provided
-    When the conversion is triggered
-    Then the converted amount in USD should have the same precision
+Feature: Currency Conversion
 
   Background:
-    Given the application is running
-    And the conversion system is accessible
+    Given the user is logged in and on the currency conversion page
+
+  Scenario: Verify error message for invalid amount during currency conversion
+    When an invalid amount is entered for conversion
+    And the user clicks on the 'Convert' button
+    Then an appropriate error message is displayed
+    And no forex transaction is recorded in the database
+    And the transaction history remains unchanged
