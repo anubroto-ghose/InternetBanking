@@ -1,21 +1,16 @@
+# Test Case ID: TC_Forex_002
+# Generated from Jira Ticket: BANK-3096
+# Epic: BANK-3083
+# Generated on: 2025-07-04 14:12:28
+#
+# This is an auto-generated Cucumber feature file.
+# Modify with caution as changes may be overwritten.
+
 Feature: Forex Conversion
 
-  Scenario: User converts INR to JPY
-    Given the user is logged in with valid credentials
-    When the user navigates to the Forex conversion page
-    And the user enters an amount of 1000 INR
-    And the user clicks on the convert button
-    Then the conversion result should be displayed in JPY
-    And the user's INR account should be debited accordingly
+  Background:
+    Given User is authenticated with an invalid authentication token
 
-  Scenario: User attempts to convert without logging in
-    Given the user is not logged in
-    When the user navigates to the Forex conversion page
-    Then the user should be redirected to the login page
-
-  Scenario: User enters an invalid amount
-    Given the user is logged in with valid credentials
-    When the user navigates to the Forex conversion page
-    And the user enters an invalid amount
-    And the user clicks on the convert button
-    Then an error message should be displayed
+  Scenario: Unsuccessful forex conversion with invalid auth token
+    When User attempts to convert forex
+    Then System rejects the request and does not execute the conversion
