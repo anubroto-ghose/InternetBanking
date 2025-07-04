@@ -1,8 +1,8 @@
 /**
- * Test Case ID: TC_Conversion_002
- * Generated from Jira Ticket: BANK-3071
+ * Test Case ID: TC_Conversion_005
+ * Generated from Jira Ticket: BANK-3064
  * Epic: BANK-749
- * Generated on: 2025-07-04 18:25:23
+ * Generated on: 2025-07-04 18:26:48
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -21,13 +21,20 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
+@AutoConfigureMockMvc
 public class CurrencyConversionTest {
 
     private WebDriver driver;
@@ -41,12 +48,34 @@ public class CurrencyConversionTest {
     @MockBean
     private UserRepository userRepository;
 
+    @InjectMocks
+    private User user;
+
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
         driver = new ChromeDriver();
+    }
+
+    @Test
+    public void testCurrencyConversionDuringApiDowntime() {
+        // Mocking the service to simulate API downtime
+        when(accountService.convertCurrency(any())).thenThrow(new RuntimeException("API is down"));
+
         driver.get("http://localhost:8080/currency-conversion");
+
+        // Start the conversion process
+        WebElement convertButton = driver.findElement(By.id("convertButton"));
+        convertButton.click();
+
+        // Check for the message on the UI
+        WebElement messageElement = driver.findElement(By.id("message"));
+        String message = messageElement.getText();
+
+        // Assert the message and ensure UI remains responsive
+        assertTrue(message.contains("Using cached rates"), "User should be informed about cached rates");
+        assertEquals("200 OK", driver.getTitle(), "The UI should remain responsive");
     }
 
     @AfterEach
@@ -54,29 +83,5 @@ public class CurrencyConversionTest {
         if (driver != null) {
             driver.quit();
         }
-    }
-
-    @Test
-    public void testInvalidINRAmountConversion() {
-        // Input invalid INR amount
-        WebElement amountInput = driver.findElement(By.id("amount"));
-        amountInput.sendKeys("-500"); // Test with negative amount
-
-        // Click the Convert button
-        WebElement convertButton = driver.findElement(By.id("convertButton"));
-        convertButton.click();
-
-        // Verify error message
-        WebElement errorMessage = driver.findElement(By.id("errorMessage"));
-        assertTrue(errorMessage.isDisplayed(), "Error message should be displayed");
-        assertEquals("Invalid amount. Please enter a positive number.", errorMessage.getText());
-
-        // Test with non-numeric input
-        amountInput.clear();
-        amountInput.sendKeys("abc");
-        convertButton.click();
-
-        assertTrue(errorMessage.isDisplayed(), "Error message should be displayed");
-        assertEquals("Invalid amount. Please enter a positive number.", errorMessage.getText());
     }
 }
