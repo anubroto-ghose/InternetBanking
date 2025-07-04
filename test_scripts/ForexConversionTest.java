@@ -1,8 +1,8 @@
 /**
- * Test Case ID: TC_Forex_002
- * Generated from Jira Ticket: BANK-3096
+ * Test Case ID: TC_Forex_001_TC_Login_003
+ * Generated from Jira Ticket: BANK-3094
  * Epic: BANK-3083
- * Generated on: 2025-07-04 14:12:28
+ * Generated on: 2025-07-04 14:13:24
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -11,33 +11,34 @@
 package com.webapp.bankingportal;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ForexConversionTest {
 
-    @Autowired
+    @LocalServerPort
+    private int port;
+    
     private WebDriver driver;
-
+    
+    @BeforeEach
+    public void setUp() {
+        System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
+        driver = new ChromeDriver();
+    }
+    
+    @AfterEach
+    public void tearDown() {
+        driver.quit();
+    }
+    
     @Test
-    public void testInvalidAuthTokenForexConversion() {
-        // Navigate to the forex conversion page
-        driver.get("http://bankingportal.com/forexPage");
-
-        // Set invalid authentication token
-        String authToken = "invalid_token";
-
-        // Perform forex conversion
-        driver.findElement(By.id("authTokenInput")).sendKeys(authToken);
-        driver.findElement(By.id("convertButton")).click();
-
-        // Verify system rejection
-        // Add assertions here
+    public void testForexConversionRedirectsToLoginPage() {
+        driver.get("http://localhost:" + port + "/forex-conversion");
+        assertTrue(driver.getCurrentUrl().contains("/login"));
     }
 }
