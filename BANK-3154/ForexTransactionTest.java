@@ -2,7 +2,7 @@
  * Test Case ID: TC_Forex_004
  * Generated from Jira Ticket: BANK-3154
  * Epic: BANK-3124
- * Generated on: 2025-07-07 15:54:30
+ * Generated on: 2025-07-07 16:07:57
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -23,22 +23,20 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 public class ForexTransactionTest {
 
-    private WebDriver driver;
+    @Autowired
+    private MockMvc mockMvc;
 
     @Mock
     private UserRepository userRepository;
@@ -46,38 +44,43 @@ public class ForexTransactionTest {
     @InjectMocks
     private AccountService accountService;
 
+    private WebDriver driver;
+
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
         driver = new ChromeDriver();
-        driver.get("http://localhost:8080/bankingportal");
+    }
+
+    @Test
+    public void testInitiateForexTransactionWithNonExistentCustomer() throws Exception {
+        // Mocking the user repository to return null for non-existent customer
+        when(userRepository.findById(any())).thenReturn(null);
+
+        // Starting the web application
+        driver.get("http://localhost:8080/forex/initiate");
+
+        // Sending request to initiate forex transaction
+        WebElement customerIdField = driver.findElement(By.id("customerId"));
+        customerIdField.sendKeys("nonExistentCustomerId");
+
+        WebElement amountField = driver.findElement(By.id("amount"));
+        amountField.sendKeys("1000");
+
+        WebElement submitButton = driver.findElement(By.id("submitTransaction"));
+        submitButton.click();
+
+        // Verifying the response
+        mockMvc.perform(post("/api/forex/initiate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"customerId\":\"nonExistentCustomerId\", \"amount\":1000}"))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Customer not found"));
     }
 
     @AfterEach
     public void tearDown() {
         driver.quit();
-    }
-
-    @Test
-    public void testInitiateForexTransactionWithNonExistentCustomer() {
-        // Mocking the behavior of userRepository
-        when(userRepository.findById(any())).thenReturn(null);
-
-        // Simulating the forex transaction initiation
-        WebElement initiateTransactionButton = driver.findElement(By.id("initiate-transaction"));
-        initiateTransactionButton.click();
-
-        // Simulating input for non-existent customer
-        WebElement customerIdInput = driver.findElement(By.id("customerId"));
-        customerIdInput.sendKeys("nonexistent_customer_id");
-
-        WebElement submitButton = driver.findElement(By.id("submit-transaction"));
-        submitButton.click();
-
-        // Verifying the error message
-        WebElement errorMessage = driver.findElement(By.id("error-message"));
-        assertTrue(errorMessage.isDisplayed());
-        assertEquals("Customer not found", errorMessage.getText());
     }
 }
