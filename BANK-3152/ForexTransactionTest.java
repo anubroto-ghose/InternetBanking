@@ -2,7 +2,7 @@
  * Test Case ID: TC_Forex_002
  * Generated from Jira Ticket: BANK-3152
  * Epic: BANK-3124
- * Generated on: 2025-07-07 15:55:05
+ * Generated on: 2025-07-07 16:08:33
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -18,82 +18,68 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.web.bind.annotation.RequestBody;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 public class ForexTransactionTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @InjectMocks
-    private AccountService accountService;
+    private WebDriver driver;
 
     @Mock
     private UserRepository userRepository;
 
-    private WebDriver driver;
+    @Mock
+    private AccountService accountService;
+
+    @Mock
+    private TokenService tokenService;
+
+    @InjectMocks
+    private ForexController forexController;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
         driver = new ChromeDriver();
+        driver.get("http://localhost:8080/bankingportal");
+    }
+
+    @Test
+    public void testForexTransactionInsufficientFunds() {
+        // Given
+        String userId = "12345";
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User(userId, 1000, "JPY")));
+        when(accountService.initiateForexTransaction("JPY", "INR", 2000)).thenReturn(new ResponseEntity<>("Insufficient funds", HttpStatus.BAD_REQUEST));
+
+        // When
+        driver.findElement(By.id("transactionType")).sendKeys("Forex");
+        driver.findElement(By.id("fromCurrency")).sendKeys("JPY");
+        driver.findElement(By.id("toCurrency")).sendKeys("INR");
+        driver.findElement(By.id("amount")).sendKeys("2000");
+        driver.findElement(By.id("submitTransaction")).click();
+
+        // Then
+        String errorMessage = driver.findElement(By.id("errorMessage")).getText();
+        assertEquals("Insufficient funds", errorMessage);
+
+        // Verify user balance is unchanged
+        User user = userRepository.findById(userId).orElse(null);
+        assertEquals(1000, user.getBalance());
     }
 
     @AfterEach
     public void tearDown() {
-        if (driver != null) {
-            driver.quit();
-        }
-    }
-
-    @Test
-    public void testForexTransactionInsufficientFunds() throws Exception {
-        // Mock user and insufficient funds scenario
-        User user = new User();
-        user.setId(1L);
-        user.setBalanceInJPY(1000);
-        when(userRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
-
-        // Navigate to the forex transaction page
-        driver.get("http://localhost:8080/forex");
-
-        // Fill in the transaction form
-        WebElement amountField = driver.findElement(By.id("amount"));
-        amountField.sendKeys("5000"); // Trying to convert more than available
-
-        WebElement fromCurrency = driver.findElement(By.id("fromCurrency"));
-        fromCurrency.sendKeys("JPY");
-
-        WebElement toCurrency = driver.findElement(By.id("toCurrency"));
-        toCurrency.sendKeys("INR");
-
-        WebElement submitButton = driver.findElement(By.id("submit"));
-        submitButton.click();
-
-        // Verify the response
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/forex/transaction")
-                .contentType("application/json")
-                .content("{\"amount\": 5000, \"fromCurrency\": \"JPY\", \"toCurrency\": \"INR\"}")
-        )
-        .andExpect(MockMvcResultMatchers.status().isBadRequest())
-        .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Insufficient funds"));
-
-        // Assert that the balance has not changed
-        assertEquals(1000, user.getBalanceInJPY());
+        driver.quit();
     }
 }
