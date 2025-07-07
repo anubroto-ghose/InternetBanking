@@ -1,12 +1,12 @@
 # Test Case ID: TC_Forex_004
 # Generated from Jira Ticket: BANK-3154
 # Epic: BANK-3124
-# Generated on: 2025-07-07 15:54:30
+# Generated on: 2025-07-07 16:07:57
 #
 # This is an auto-generated Cucumber feature file.
 # Modify with caution as changes may be overwritten.
 
-Feature: Forex Transaction
+Feature: Initiate Forex Transaction
 
   Scenario: Initiate forex transaction with non-existent customer
     Given the RESTful API endpoint for forex transactions is available
