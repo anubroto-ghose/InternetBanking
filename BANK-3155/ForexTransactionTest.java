@@ -2,7 +2,7 @@
  * Test Case ID: TC_Forex_005
  * Generated from Jira Ticket: BANK-3155
  * Epic: BANK-3124
- * Generated on: 2025-07-07 15:54:13
+ * Generated on: 2025-07-07 16:07:34
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -10,76 +10,73 @@
 
 package com.webapp.bankingportal;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
+@AutoConfigureMockMvc
 public class ForexTransactionTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @InjectMocks
+    private AccountService accountService;
 
     private WebDriver driver;
 
-    @MockBean
-    private RestTemplate restTemplate;
-
-    @Autowired
-    private AccountService accountService;
-
     @BeforeEach
-    public void setUp() {
+    public void setup() {
+        MockitoAnnotations.openMocks(this);
         System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
         driver = new ChromeDriver();
-        driver.get("http://localhost:8080/bankingportal");
     }
 
     @Test
-    public void testInitiateForexTransaction() throws InterruptedException {
-        // Mocking the response for the forex transaction
-        AmountRequest request = new AmountRequest(10000, "JPY", "INR");
-        ResponseEntity<String> mockResponse = ResponseEntity.ok("Transaction initiated successfully");
-        when(restTemplate.postForEntity(anyString(), any(), eq(String.class))).thenReturn(mockResponse);
+    public void testSuccessfulForexTransaction() throws Exception {
+        // Mock user data
+        User user = new User();
+        user.setId(1L);
+        user.setCurrencyAmount(10000.0); // JPY
 
-        // Locate and fill in the forex transaction form
-        WebElement amountField = driver.findElement(By.id("amount"));
-        amountField.sendKeys("10000");
+        when(userRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
 
-        WebElement fromCurrencyField = driver.findElement(By.id("fromCurrency"));
-        fromCurrencyField.sendKeys("JPY");
+        // Initiate Forex transaction
+        AmountRequest amountRequest = new AmountRequest();
+        amountRequest.setAmount(10000.0);
+        amountRequest.setFromCurrency("JPY");
+        amountRequest.setToCurrency("INR");
 
-        WebElement toCurrencyField = driver.findElement(By.id("toCurrency"));
-        toCurrencyField.sendKeys("INR");
+        // Perform API call
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/forex/transaction")
+                .contentType("application/json")
+                .content(new ObjectMapper().writeValueAsString(amountRequest)))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("success"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Transaction initiated successfully"));
 
-        WebElement submitButton = driver.findElement(By.id("submitTransaction"));
-        submitButton.click();
-
-        // Wait for a short period for the response
-        Thread.sleep(2000);
-
-        // Verify the response
-        WebElement responseMessage = driver.findElement(By.id("responseMessage"));
-        assertEquals("Transaction initiated successfully", responseMessage.getText());
-
-        // Verify that the account balance has been updated
-        verify(accountService).deductAmount(anyInt(), eq("JPY"));
-        verify(accountService).creditAmount(anyInt(), eq("INR"));
-    }
-
-    @AfterEach
-    public void tearDown() {
-        if (driver != null) {
-            driver.quit();
-        }
+        // Validate JPY amount deduction and INR credit
+        assertEquals(0.0, user.getCurrencyAmount()); // JPY amount should be deducted
+        // Assuming 10000 JPY = 6500 INR for this transaction
+        assertEquals(6500.0, accountService.getUserBalanceInINR(user.getId()));
     }
 }
