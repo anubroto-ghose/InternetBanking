@@ -2,7 +2,7 @@
  * Test Case ID: TC_Forex_003
  * Generated from Jira Ticket: BANK-3153
  * Epic: BANK-3124
- * Generated on: 2025-07-07 15:54:48
+ * Generated on: 2025-07-07 16:08:16
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -10,9 +10,15 @@
 
 package com.webapp.bankingportal;
 
-import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -23,52 +29,55 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@ExtendWith(MockitoExtension.class)
 @SpringBootTest
 public class ForexTransactionTest {
 
-    private WebDriver driver;
+    @Mock
+    private UserRepository userRepository;
 
-    @MockBean
-    private RestTemplate restTemplate;
+    @Mock
+    private TokenService tokenService;
 
-    @Autowired
+    @Mock
     private AccountService accountService;
+
+    @InjectMocks
+    private ForexTransactionService forexTransactionService;
+
+    private WebDriver driver;
 
     @BeforeEach
     public void setUp() {
-        System.setProperty("webdriver.chrome.driver", "/path/to/chromedriver");
+        System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
         driver = new ChromeDriver();
-        driver.get("http://localhost:8080/bankingportal");
+        // Mock responses
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(new User()));
     }
 
     @Test
     public void testInitiateForexTransactionWithInvalidCurrency() {
-        // Mocking the response for an invalid currency type
-        when(restTemplate.postForEntity(any(String.class), any(AmountRequest.class), any(Class.class)))
-            .thenReturn(new ResponseEntity<>("Invalid currency type", HttpStatus.BAD_REQUEST));
+        // Navigate to forex transaction page
+        driver.get("http://localhost:8080/forex");
 
-        // Fill in the forex transaction form
-        WebElement currencyField = driver.findElement(By.id("currencyType"));
+        // Fill in the amount
+        WebElement amountField = driver.findElement(By.id("amount"));
+        amountField.sendKeys("100");
+
+        // Attempt to initiate transaction with invalid currency type
+        WebElement currencyField = driver.findElement(By.id("currency"));
         currencyField.sendKeys("INVALID_CURRENCY");
 
-        WebElement amountField = driver.findElement(By.id("amount"));
-        amountField.sendKeys("1000");
-
-        WebElement submitButton = driver.findElement(By.id("submitTransaction"));
+        WebElement submitButton = driver.findElement(By.id("submit"));
         submitButton.click();
 
-        // Verify the error message
-        WebElement errorMessage = driver.findElement(By.id("errorMessage"));
-        String actualMessage = errorMessage.getText();
-        assertTrue(actualMessage.contains("Invalid currency type"), "Error message not displayed as expected");
+        // Verify response
+        WebElement errorMessage = driver.findElement(By.id("error"));
+        assertEquals("Invalid currency type", errorMessage.getText());
 
-        // Verify no amount was deducted (mocked service)
-        assertEquals(10000, accountService.getAccountBalance(), "Account balance should remain unchanged");
+        // Verify that no amount was deducted
+        verify(accountService, never()).deductAmount(anyLong(), anyDouble());
     }
 
     @AfterEach
