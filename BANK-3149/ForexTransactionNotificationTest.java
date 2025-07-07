@@ -2,7 +2,7 @@
  * Test Case ID: TC_Forex_004
  * Generated from Jira Ticket: BANK-3149
  * Epic: BANK-3124
- * Generated on: 2025-07-07 15:55:56
+ * Generated on: 2025-07-07 16:09:33
  * 
  * This is an auto-generated Selenium test script.
  * Modify with caution as changes may be overwritten.
@@ -21,37 +21,28 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.web.context.WebApplicationContext;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
-
-@ExtendWith(SpringExtension.class)
 @SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
 public class ForexTransactionNotificationTest {
 
     private WebDriver driver;
 
-    @Mock
-    private UserRepository userRepository;
-
-    @Mock
+    @MockBean
     private AccountService accountService;
 
-    @Mock
+    @MockBean
     private TokenService tokenService;
 
-    @InjectMocks
-    private ForexTransactionService forexTransactionService;
+    @MockBean
+    private UserRepository userRepository;
 
-    @Autowired
-    private WebApplicationContext context;
+    @InjectMocks
+    private User user;
 
     @BeforeEach
     public void setUp() {
@@ -59,6 +50,31 @@ public class ForexTransactionNotificationTest {
         System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
         driver = new ChromeDriver();
         driver.get("http://localhost:8080/login");
+        loginUser();
+    }
+
+    private void loginUser() {
+        WebElement usernameField = driver.findElement(By.id("username"));
+        WebElement passwordField = driver.findElement(By.id("password"));
+        WebElement loginButton = driver.findElement(By.id("loginButton"));
+
+        usernameField.sendKeys("testUser");
+        passwordField.sendKeys("password123");
+        loginButton.click();
+    }
+
+    @Test
+    public void testForexTransactionNotification() throws InterruptedException {
+        when(accountService.initiateForexTransaction("testUser", 1000)).thenThrow(new RuntimeException("Transaction failed"));
+
+        WebElement forexButton = driver.findElement(By.id("forexButton"));
+        forexButton.click();
+
+        Thread.sleep(2000); // wait for the transaction to process
+
+        WebElement notification = driver.findElement(By.id("notification"));
+        assertTrue(notification.isDisplayed(), "Notification was not displayed");
+        assertTrue(notification.getText().contains("Transaction failed"), "Notification message is incorrect");
     }
 
     @AfterEach
@@ -66,37 +82,5 @@ public class ForexTransactionNotificationTest {
         if (driver != null) {
             driver.quit();
         }
-    }
-
-    @Test
-    public void testForexTransactionNotification() {
-        // Mock user login
-        when(userRepository.findByUsername("testUser"))
-                .thenReturn(new User("testUser", "testPassword"));
-
-        // Perform login
-        WebElement usernameField = driver.findElement(By.id("username"));
-        WebElement passwordField = driver.findElement(By.id("password"));
-        WebElement loginButton = driver.findElement(By.id("loginButton"));
-
-        usernameField.sendKeys("testUser");
-        passwordField.sendKeys("testPassword");
-        loginButton.click();
-
-        // Mock forex transaction failure
-        when(accountService.initiateForexTransaction(any())).thenThrow(new ForexTransactionException("Transaction failed"));
-
-        // Initiate forex transaction
-        WebElement forexButton = driver.findElement(By.id("forexButton"));
-        forexButton.click();
-
-        // Cancel forex transaction
-        WebElement cancelButton = driver.findElement(By.id("cancelButton"));
-        cancelButton.click();
-
-        // Check for notification
-        WebElement notification = driver.findElement(By.id("notification"));
-        assertNotNull(notification);
-        assertEquals("Transaction failed", notification.getText());
     }
 }
